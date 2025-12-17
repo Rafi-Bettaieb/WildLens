@@ -23,7 +23,22 @@ screen_width = 800
 screen_height = 600
 screen = pygame.display.set_mode((screen_width, screen_height))
 
+# Colors & Font for Menu
 clear_color = (30, 150, 50)
+MENU_BG_COLOR = (50, 50, 50)
+BUTTON_COLOR = (200, 200, 200)
+TEXT_COLOR = (0, 0, 0)
+font = pygame.font.Font(None, 50)
+
+# --- MENU SETUP ---
+# Create button rectangles centered on screen
+start_rect = pygame.Rect(screen_width // 2 - 100, screen_height // 2 - 60, 200, 50)
+quit_rect = pygame.Rect(screen_width // 2 - 100, screen_height // 2 + 20, 200, 50)
+
+# Game State: "menu" or "playing"
+game_state = "menu"
+# ------------------
+
 running = True
 
 tile_kinds = [
@@ -57,67 +72,97 @@ camera = pygame.Rect(0, 0, screen_width, screen_height)
 # Current active filter
 current_filter = None
 
+def draw_text_centered(text, rect, surf):
+    text_surf = font.render(text, True, TEXT_COLOR)
+    text_rect = text_surf.get_rect(center=rect.center)
+    surf.blit(text_surf, text_rect)
+
 # Game Loop
 while running:
+    # 1. EVENT HANDLING
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == pygame.KEYDOWN:
-            keys_down.add(event.key)
             
-            if event.key == pygame.K_0: current_filter = None
-            if event.key == pygame.K_1: current_filter = "snake"
-            if event.key == pygame.K_2: current_filter = "bee"
-            if event.key == pygame.K_3: current_filter = "bat"
-            if event.key == pygame.K_4: current_filter = "eagle"
-            if event.key == pygame.K_5: current_filter = "dog"
-            if event.key == pygame.K_6: current_filter = "fish"
+        # --- MENU EVENTS ---
+        if game_state == "menu":
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1: # Left click
+                    if start_rect.collidepoint(event.pos):
+                        game_state = "playing" # Start game!
+                    elif quit_rect.collidepoint(event.pos):
+                        running = False # Quit app
+        # -------------------
 
-        elif event.type == pygame.KEYUP:
-            keys_down.remove(event.key)
+        # --- GAME EVENTS ---
+        elif game_state == "playing":
+            if event.type == pygame.KEYDOWN:
+                keys_down.add(event.key)
+                
+                if event.key == pygame.K_0: current_filter = None
+                if event.key == pygame.K_1: current_filter = "snake"
+                if event.key == pygame.K_2: current_filter = "bee"
+                if event.key == pygame.K_3: current_filter = "bat"
+                if event.key == pygame.K_4: current_filter = "eagle"
+                if event.key == pygame.K_5: current_filter = "dog"
+                if event.key == pygame.K_6: current_filter = "fish"
+                if event.key == pygame.K_ESCAPE: 
+                    game_state = "menu" # Return to menu on ESC
 
-    # Update Code
-    player.update(map)
+            elif event.type == pygame.KEYUP:
+                keys_down.remove(event.key)
+        # -------------------
 
-    # Update Camera
-    camera.center = player.rect.center
-    if camera.left < 0: camera.left = 0
-    if camera.top < 0: camera.top = 0
-    if camera.right > map.pixel_width: camera.right = map.pixel_width
-    if camera.bottom > map.pixel_height: camera.bottom = map.pixel_height
-
-    # Draw Code
-    screen.fill(clear_color)
-    
-    map.draw(screen, camera)
-    for s in sprites:
-        s.draw(screen, camera)
+    # 2. DRAWING & UPDATES
+    if game_state == "menu":
+        screen.fill(MENU_BG_COLOR)
         
-    # --- Apply Active Filter ---
-    if current_filter == "snake":
-        filtered_surf = apply_snake_vision(screen)
-        screen.blit(filtered_surf, (0, 0))
-    elif current_filter == "bee":
-        filtered_surf = apply_bee_vision(screen)
-        screen.blit(filtered_surf, (0, 0))
-    elif current_filter == "bat":
-        filtered_surf = apply_bat_vision(screen)
-        screen.blit(filtered_surf, (0, 0))
+        # Draw Buttons
+        pygame.draw.rect(screen, BUTTON_COLOR, start_rect)
+        pygame.draw.rect(screen, BUTTON_COLOR, quit_rect)
         
-    elif current_filter == "eagle":
-        # --- NEW: Calculate player's screen position ---
-        player_screen_pos = (player.rect.centerx - camera.x, player.rect.centery - camera.y)
-        # Pass it to the filter
-        filtered_surf = apply_eagle_vision(screen, player_pos=player_screen_pos)
-        screen.blit(filtered_surf, (0, 0))
-        # -----------------------------------------------
+        # Draw Text
+        draw_text_centered("START", start_rect, screen)
+        draw_text_centered("QUIT", quit_rect, screen)
         
-    elif current_filter == "dog":
-        filtered_surf = apply_dog_vision(screen)
-        screen.blit(filtered_surf, (0, 0))
-    elif current_filter == "fish":
-        filtered_surf = apply_deepsea_vision(screen)
-        screen.blit(filtered_surf, (0, 0))
+    elif game_state == "playing":
+        # Update Code
+        player.update(map)
+
+        # Update Camera
+        camera.center = player.rect.center
+        if camera.left < 0: camera.left = 0
+        if camera.top < 0: camera.top = 0
+        if camera.right > map.pixel_width: camera.right = map.pixel_width
+        if camera.bottom > map.pixel_height: camera.bottom = map.pixel_height
+
+        # Draw Code
+        screen.fill(clear_color)
+        
+        map.draw(screen, camera)
+        for s in sprites:
+            s.draw(screen, camera)
+            
+        # --- Apply Active Filter ---
+        if current_filter == "snake":
+            filtered_surf = apply_snake_vision(screen)
+            screen.blit(filtered_surf, (0, 0))
+        elif current_filter == "bee":
+            filtered_surf = apply_bee_vision(screen)
+            screen.blit(filtered_surf, (0, 0))
+        elif current_filter == "bat":
+            filtered_surf = apply_bat_vision(screen)
+            screen.blit(filtered_surf, (0, 0))
+        elif current_filter == "eagle":
+            player_screen_pos = (player.rect.centerx - camera.x, player.rect.centery - camera.y)
+            filtered_surf = apply_eagle_vision(screen, player_pos=player_screen_pos)
+            screen.blit(filtered_surf, (0, 0))
+        elif current_filter == "dog":
+            filtered_surf = apply_dog_vision(screen)
+            screen.blit(filtered_surf, (0, 0))
+        elif current_filter == "fish":
+            filtered_surf = apply_deepsea_vision(screen)
+            screen.blit(filtered_surf, (0, 0))
 
     pygame.display.flip()
     pygame.time.delay(17)
