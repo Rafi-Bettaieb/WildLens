@@ -8,37 +8,44 @@ class TileKind:
 
 class Map:
     def __init__(self, map_file, tile_kinds, tile_size):
-        # Keep a list of different kinds of files (grass, sand, water, etc.)
         self.tile_kinds = tile_kinds
 
-        # Load the data from the file
         file = open(map_file, "r")
         data = file.read()
         file.close()
 
-        # Set up the tiles from loaded data
         self.tiles = []
         for line in data.split('\n'):
+            if not line.strip(): continue # Skip empty lines
             row = []
             for tile_number in line:
                 row.append(int(tile_number))
             self.tiles.append(row)
 
-        # How big in pixels are the tiles?
         self.tile_size = tile_size
+        
+        # Calculate Map Dimensions in Pixels
+        self.pixel_width = len(self.tiles[0]) * tile_size
+        self.pixel_height = len(self.tiles) * tile_size
 
-    def draw(self, screen):
+    def draw(self, screen, camera):
         # Go row by row
         for y, row in enumerate(self.tiles):
-            # Within the current row, go through each tile
             for x, tile in enumerate(row):
-                location = (x * self.tile_size, y * self.tile_size)
-                image = self.tile_kinds[tile].image
-                screen.blit(image, location)
+                # Calculate world position
+                world_x = x * self.tile_size
+                world_y = y * self.tile_size
+                
+                # Calculate screen position
+                screen_x = world_x - camera.x
+                screen_y = world_y - camera.y
+                
+                # Optimization: Only draw if visible on screen
+                if -self.tile_size < screen_x < screen.get_width() and -self.tile_size < screen_y < screen.get_height():
+                    image = self.tile_kinds[tile].image
+                    screen.blit(image, (screen_x, screen_y))
 
-    # --- NEW METHOD ---
     def is_blocked(self, x, y, width, height):
-        # Check the four corners of the player's rectangle
         corners = [
             (x, y),
             (x + width - 1, y),
@@ -47,11 +54,9 @@ class Map:
         ]
         
         for cx, cy in corners:
-            # Convert pixel coordinates to grid coordinates
             grid_x = int(cx // self.tile_size)
             grid_y = int(cy // self.tile_size)
             
-            # Check if within map bounds
             if 0 <= grid_y < len(self.tiles) and 0 <= grid_x < len(self.tiles[0]):
                 tile_index = self.tiles[grid_y][grid_x]
                 if self.tile_kinds[tile_index].is_solid:

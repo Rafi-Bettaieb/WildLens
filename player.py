@@ -7,6 +7,11 @@ class Player(Sprite):
         self.x = x
         self.y = y
         
+        # --- NEW: Store starting position for respawn ---
+        self.start_x = x
+        self.start_y = y
+        # ------------------------------------------------
+        
         # Load and slice the sprite sheet
         self.load_sprites(image_path)
         
@@ -73,6 +78,18 @@ class Player(Sprite):
             if not self.check_collision(self.x, new_y, map_obj):
                 self.y = new_y
         
+        # --- NEW: Check Bounds and Respawn ---
+        # If the player goes off the left, top, right, or bottom edges
+        if (self.x < 0 or 
+            self.y < 0 or 
+            self.x > map_obj.pixel_width - self.width or 
+            self.y > map_obj.pixel_height - self.height):
+            
+            # Reset to start
+            self.x = self.start_x
+            self.y = self.start_y
+        # -------------------------------------
+
         # Sync rect with new position
         self.rect.topleft = (self.x, self.y)
 

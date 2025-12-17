@@ -9,12 +9,13 @@ from map import Map, TileKind
 pygame.init()
 
 pygame.display.set_caption("Adventure Game")
-screen = pygame.display.set_mode((800, 600))
+screen_width = 800
+screen_height = 600
+screen = pygame.display.set_mode((screen_width, screen_height))
 
 clear_color = (30, 150, 50)
 running = True
 
-# --- UPDATE: Set water to be solid (True) ---
 tile_kinds = [
     TileKind("dirt", "images/dirt.png", False),
     TileKind("grass", "images/grass.png", False),
@@ -40,6 +41,8 @@ Sprite("images/tree.png", 15* 32, 15* 32)
 Sprite("images/tree.png", 17 * 32,1 * 32)
 Sprite("images/tree.png", 1 * 32, 15 * 32)
 
+# Camera definition
+camera = pygame.Rect(0, 0, screen_width, screen_height)
 
 # Game Loop
 while running:
@@ -51,14 +54,35 @@ while running:
         elif event.type == pygame.KEYUP:
             keys_down.remove(event.key)
 
-    # --- UPDATE: Pass the map to the update function ---
+    # Update Code
     player.update(map)
+
+    # --- Update Camera ---
+    # 1. Center the camera on the player
+    camera.center = player.rect.center
+    
+    # 2. Clamp the camera so it doesn't show outside the map
+    # Prevent left/top overflow
+    if camera.left < 0: 
+        camera.left = 0
+    if camera.top < 0:
+        camera.top = 0
+        
+    # Prevent right/bottom overflow
+    if camera.right > map.pixel_width:
+        camera.right = map.pixel_width
+    if camera.bottom > map.pixel_height:
+        camera.bottom = map.pixel_height
+    # ---------------------
 
     # Draw Code
     screen.fill(clear_color)
-    map.draw(screen)
+    
+    # Pass camera to draw functions
+    map.draw(screen, camera)
     for s in sprites:
-        s.draw(screen)
+        s.draw(screen, camera)
+        
     pygame.display.flip()
 
     # Cap the frames
