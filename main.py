@@ -1,9 +1,19 @@
 import pygame
+import numpy as np
 from sprite import sprites, Sprite
 from player import Player
 from input import keys_down
 from map import Map, TileKind
 
+# Import the filters
+from filters import (
+    apply_snake_vision, 
+    apply_bee_vision, 
+    apply_bat_vision, 
+    apply_eagle_vision, 
+    apply_dog_vision, 
+    apply_deepsea_vision
+)
 
 # Set up 
 pygame.init()
@@ -44,6 +54,9 @@ Sprite("images/tree.png", 1 * 32, 15 * 32)
 # Camera definition
 camera = pygame.Rect(0, 0, screen_width, screen_height)
 
+# Current active filter
+current_filter = None
+
 # Game Loop
 while running:
     for event in pygame.event.get():
@@ -51,43 +64,62 @@ while running:
             running = False
         elif event.type == pygame.KEYDOWN:
             keys_down.add(event.key)
+            
+            if event.key == pygame.K_0: current_filter = None
+            if event.key == pygame.K_1: current_filter = "snake"
+            if event.key == pygame.K_2: current_filter = "bee"
+            if event.key == pygame.K_3: current_filter = "bat"
+            if event.key == pygame.K_4: current_filter = "eagle"
+            if event.key == pygame.K_5: current_filter = "dog"
+            if event.key == pygame.K_6: current_filter = "fish"
+
         elif event.type == pygame.KEYUP:
             keys_down.remove(event.key)
 
     # Update Code
     player.update(map)
 
-    # --- Update Camera ---
-    # 1. Center the camera on the player
+    # Update Camera
     camera.center = player.rect.center
-    
-    # 2. Clamp the camera so it doesn't show outside the map
-    # Prevent left/top overflow
-    if camera.left < 0: 
-        camera.left = 0
-    if camera.top < 0:
-        camera.top = 0
-        
-    # Prevent right/bottom overflow
-    if camera.right > map.pixel_width:
-        camera.right = map.pixel_width
-    if camera.bottom > map.pixel_height:
-        camera.bottom = map.pixel_height
-    # ---------------------
+    if camera.left < 0: camera.left = 0
+    if camera.top < 0: camera.top = 0
+    if camera.right > map.pixel_width: camera.right = map.pixel_width
+    if camera.bottom > map.pixel_height: camera.bottom = map.pixel_height
 
     # Draw Code
     screen.fill(clear_color)
     
-    # Pass camera to draw functions
     map.draw(screen, camera)
     for s in sprites:
         s.draw(screen, camera)
         
-    pygame.display.flip()
+    # --- Apply Active Filter ---
+    if current_filter == "snake":
+        filtered_surf = apply_snake_vision(screen)
+        screen.blit(filtered_surf, (0, 0))
+    elif current_filter == "bee":
+        filtered_surf = apply_bee_vision(screen)
+        screen.blit(filtered_surf, (0, 0))
+    elif current_filter == "bat":
+        filtered_surf = apply_bat_vision(screen)
+        screen.blit(filtered_surf, (0, 0))
+        
+    elif current_filter == "eagle":
+        # --- NEW: Calculate player's screen position ---
+        player_screen_pos = (player.rect.centerx - camera.x, player.rect.centery - camera.y)
+        # Pass it to the filter
+        filtered_surf = apply_eagle_vision(screen, player_pos=player_screen_pos)
+        screen.blit(filtered_surf, (0, 0))
+        # -----------------------------------------------
+        
+    elif current_filter == "dog":
+        filtered_surf = apply_dog_vision(screen)
+        screen.blit(filtered_surf, (0, 0))
+    elif current_filter == "fish":
+        filtered_surf = apply_deepsea_vision(screen)
+        screen.blit(filtered_surf, (0, 0))
 
-    # Cap the frames
+    pygame.display.flip()
     pygame.time.delay(17)
 
-
-# Break down Pygame
 pygame.quit()
