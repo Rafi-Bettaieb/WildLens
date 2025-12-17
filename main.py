@@ -14,18 +14,15 @@ screen = pygame.display.set_mode((800, 600))
 clear_color = (30, 150, 50)
 running = True
 
+# --- UPDATE: Set water to be solid (True) ---
 tile_kinds = [
     TileKind("dirt", "images/dirt.png", False),
     TileKind("grass", "images/grass.png", False),
-    TileKind("water", "images/water.png", False),
+    TileKind("water", "images/water.png", True), 
     TileKind("wood", "images/wood.png", False)
 ]
 
-# --- CHANGE IS HERE ---
-# Changed "images/player.png" to "images/man.png"
 player = Player("images/man.png", 32*11, 32*7)
-# ----------------------
-
 map = Map("maps/start.map", tile_kinds, 32)
 
 Sprite("images/tree.png", 0 * 32, 0 * 32)
@@ -54,8 +51,8 @@ while running:
         elif event.type == pygame.KEYUP:
             keys_down.remove(event.key)
 
-    # Update Code
-    player.update()
+    # --- UPDATE: Pass the map to the update function ---
+    player.update(map)
 
     # Draw Code
     screen.fill(clear_color)

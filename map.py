@@ -35,3 +35,25 @@ class Map:
                 location = (x * self.tile_size, y * self.tile_size)
                 image = self.tile_kinds[tile].image
                 screen.blit(image, location)
+
+    # --- NEW METHOD ---
+    def is_blocked(self, x, y, width, height):
+        # Check the four corners of the player's rectangle
+        corners = [
+            (x, y),
+            (x + width - 1, y),
+            (x, y + height - 1),
+            (x + width - 1, y + height - 1)
+        ]
+        
+        for cx, cy in corners:
+            # Convert pixel coordinates to grid coordinates
+            grid_x = int(cx // self.tile_size)
+            grid_y = int(cy // self.tile_size)
+            
+            # Check if within map bounds
+            if 0 <= grid_y < len(self.tiles) and 0 <= grid_x < len(self.tiles[0]):
+                tile_index = self.tiles[grid_y][grid_x]
+                if self.tile_kinds[tile_index].is_solid:
+                    return True
+        return False
