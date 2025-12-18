@@ -11,7 +11,7 @@ if parent_dir not in sys.path:
 
 from map import Map, TileKind
 from player import Player
-from sprite import Sprite, sprites # On utilise la liste 'sprites' pour les collisions
+from sprite import Sprite, sprites 
 from input import keys_down 
 from filters import (
     apply_snake_vision, 
@@ -21,6 +21,9 @@ from filters import (
     apply_dog_vision, 
     apply_deepsea_vision
 )
+
+# [CORRECTION] Import du niveau 2 pour la transition
+import levels.level2 as level2
 
 # --- CLASSE MOUTON ---
 class Sheep:
@@ -56,33 +59,22 @@ class Sheep:
         if new_x > map_obj.pixel_width - self.width: new_x = map_obj.pixel_width - self.width
         if new_y > map_obj.pixel_height - self.height: new_y = map_obj.pixel_height - self.height
         
-        # On prépare le rectangle futur pour tester les collisions
+        # Collisions
         future_rect = pygame.Rect(new_x, new_y, self.width, self.height)
-        
-        # 2. Collision avec la Carte (Eau, Murs)
-        if map_obj.is_blocked(new_x, new_y, self.width, self.height):
-            return # Bloqué par le terrain
-
-        # 3. [NOUVEAU] Collision avec les Sprites (ARBRES + Joueur)
-        # La liste 'sprites' contient tous les objets solides (Arbres) et le Player.
+        if map_obj.is_blocked(new_x, new_y, self.width, self.height): return 
         for s in sprites:
-            if future_rect.colliderect(s.rect):
-                return # Bloqué par un arbre ou le joueur
+            if future_rect.colliderect(s.rect): return 
 
-        # Si tout est libre, on valide le mouvement
         self.rect.x = new_x
         self.rect.y = new_y
 
     def draw(self, surface, camera, current_filter):
         screen_pos = (self.rect.x - camera.x, self.rect.y - camera.y)
         
-        # Gestion Visuelle du Robot pour le filtre Serpent
         if current_filter == "snake":
             if self.is_robot:
-                # Froid (Noir) -> Deviendra Bleu sombre
                 pygame.draw.rect(surface, (0, 0, 0), (*screen_pos, self.width, self.height))
             else:
-                # Chaud (Blanc) -> Deviendra Rouge/Jaune
                 pygame.draw.rect(surface, (255, 255, 255), (*screen_pos, self.width, self.height))
         else:
             surface.blit(self.image_normal, screen_pos)
@@ -124,7 +116,6 @@ def run(screen):
     
     # Génération des moutons 
     sheeps = []
-    # On s'assure que les moutons ne spawnenet pas DANS un arbre
     def is_pos_valid(x, y, w, h):
         rect = pygame.Rect(x, y, w, h)
         if game_map.is_blocked(x, y, w, h): return False
@@ -132,15 +123,12 @@ def run(screen):
             if rect.colliderect(s.rect): return False
         return True
 
-    # Création de 12 moutons + 1 robot
     total_sheep = 13
     created = 0
     while created < total_sheep:
         rx = random.randint(100, 700)
         ry = random.randint(100, 500)
-        # Le dernier est le robot
         is_robot = (created == total_sheep - 1)
-        
         if is_pos_valid(rx, ry, 30, 30):
             sheeps.append(Sheep(rx, ry, is_robot=is_robot))
             created += 1
@@ -161,29 +149,36 @@ def run(screen):
                 keys_down.add(event.key)
                 if event.key == pygame.K_ESCAPE: return
                 
-                # Filtres
-                if event.key == pygame.K_0: current_filter = None
-                if event.key == pygame.K_1: current_filter = "snake"
-                if event.key == pygame.K_2: current_filter = "bee"
-                if event.key == pygame.K_3: current_filter = "bat"
-                if event.key == pygame.K_4: current_filter = "eagle"
-                if event.key == pygame.K_5: current_filter = "dog"
-                if event.key == pygame.K_6: current_filter = "fish"
+                # [CORRECTION] Gestion de la transition vers Niveau 2
+                if game_state == "WON":
+                    if event.key == pygame.K_RETURN: # Touche Entrée
+                        level2.run(screen)
+                        return # Quitter le niveau 1
                 
-                # Action capture
-                if event.key == pygame.K_SPACE and game_state == "PLAYING":
-                    hit_sheep = None
-                    for s in sheeps:
-                        if player.rect.colliderect(s.rect):
-                            hit_sheep = s
-                            break
-                    if hit_sheep:
-                        if hit_sheep.is_robot:
-                            game_state = "WON"
-                            message = "BRAVO ! Robot neutralise."
-                        else:
-                            game_state = "LOST"
-                            message = "ECHEC ! C'etait un vrai animal."
+                # Filtres & Jeu
+                if game_state == "PLAYING":
+                    if event.key == pygame.K_0: current_filter = None
+                    if event.key == pygame.K_1: current_filter = "snake"
+                    if event.key == pygame.K_2: current_filter = "bee"
+                    if event.key == pygame.K_3: current_filter = "bat"
+                    if event.key == pygame.K_4: current_filter = "eagle"
+                    if event.key == pygame.K_5: current_filter = "dog"
+                    if event.key == pygame.K_6: current_filter = "fish"
+                    
+                    # Action capture
+                    if event.key == pygame.K_SPACE:
+                        hit_sheep = None
+                        for s in sheeps:
+                            if player.rect.colliderect(s.rect):
+                                hit_sheep = s
+                                break
+                        if hit_sheep:
+                            if hit_sheep.is_robot:
+                                game_state = "WON"
+                                message = "BRAVO ! Robot neutralise."
+                            else:
+                                game_state = "LOST"
+                                message = "ECHEC ! C'etait un vrai animal."
 
             elif event.type == pygame.KEYUP:
                 if event.key in keys_down:
@@ -203,28 +198,19 @@ def run(screen):
         screen.fill((30, 150, 50))
         game_map.draw(screen, camera)
         
-        # Dessiner Arbres et Joueur
         for s in sprites:
             s.draw(screen, camera)
-
-        # Dessiner Moutons
         for s in sheeps:
             s.draw(screen, camera, current_filter)
             
-        # Filtres
-        if current_filter == "snake":
-            screen.blit(apply_snake_vision(screen), (0,0))
-        elif current_filter == "bee":
-            screen.blit(apply_bee_vision(screen), (0,0))
-        elif current_filter == "bat":
-            screen.blit(apply_bat_vision(screen), (0,0))
+        if current_filter == "snake": screen.blit(apply_snake_vision(screen), (0,0))
+        elif current_filter == "bee": screen.blit(apply_bee_vision(screen), (0,0))
+        elif current_filter == "bat": screen.blit(apply_bat_vision(screen), (0,0))
         elif current_filter == "eagle":
             pos = (player.rect.centerx - camera.x, player.rect.centery - camera.y)
             screen.blit(apply_eagle_vision(screen, pos), (0,0))
-        elif current_filter == "dog":
-            screen.blit(apply_dog_vision(screen), (0,0))
-        elif current_filter == "fish":
-            screen.blit(apply_deepsea_vision(screen), (0,0))
+        elif current_filter == "dog": screen.blit(apply_dog_vision(screen), (0,0))
+        elif current_filter == "fish": screen.blit(apply_deepsea_vision(screen), (0,0))
 
         # HUD
         if game_state == "PLAYING":
@@ -240,15 +226,23 @@ def run(screen):
             screen.blit(hint, (20, 60))
         
         else:
+            # Ecran Fin
             overlay = pygame.Surface((800, 600), pygame.SRCALPHA)
             overlay.fill((0, 0, 0, 180))
             screen.blit(overlay, (0,0))
             
-            c_res = (0, 255, 0) if game_state == "WON" else (255, 50, 50)
-            txt_res = font.render(message, True, c_res)
-            txt_quit = font.render("Appuyez sur ECHAP pour quitter", True, (255, 255, 255))
-            screen.blit(txt_res, (400 - txt_res.get_width()//2, 250))
-            screen.blit(txt_quit, (400 - txt_quit.get_width()//2, 320))
+            if game_state == "WON":
+                col = (0, 255, 0)
+                txt = font.render(message, True, col)
+                txt2 = font.render("Appuyez sur ENTREE pour le Niveau 2", True, (255, 255, 255))
+                screen.blit(txt, (400 - txt.get_width()//2, 250))
+                screen.blit(txt2, (400 - txt2.get_width()//2, 320))
+            else:
+                col = (255, 50, 50)
+                txt = font.render(message, True, col)
+                txt2 = font.render("Appuyez sur ECHAP pour quitter", True, (255, 255, 255))
+                screen.blit(txt, (400 - txt.get_width()//2, 250))
+                screen.blit(txt2, (400 - txt2.get_width()//2, 320))
 
         pygame.display.flip()
         clock.tick(60)
