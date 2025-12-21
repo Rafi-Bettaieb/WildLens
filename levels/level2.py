@@ -23,6 +23,9 @@ from filters import (
     apply_deepsea_vision
 )
 
+# [MODIFICATION] Import du Niveau 3 pour la transition
+import levels.level3 as level3
+
 # --- CLASSE FLEUR ---
 class Flower:
     def __init__(self, x, y, is_target=False):
@@ -123,7 +126,6 @@ def run(screen):
     current_filter = None
     game_state = "PLAYING"
     message = ""
-    # [MODIFICATION] Variable 'attempts' supprimée
 
     running = True
     while running:
@@ -136,6 +138,12 @@ def run(screen):
                 keys_down.add(event.key)
                 if event.key == pygame.K_ESCAPE: return
                 
+                # [MODIFICATION] Transition vers le Niveau 3
+                if game_state == "WON":
+                    if event.key == pygame.K_RETURN:
+                        level3.run(screen)
+                        return # Quitter le niveau 2
+
                 # Filtres
                 if event.key == pygame.K_0: current_filter = None
                 if event.key == pygame.K_1: current_filter = "snake"
@@ -158,9 +166,7 @@ def run(screen):
                             game_state = "WON"
                             message = "BRAVO ! Nectar trouve."
                         else:
-                            # [MODIFICATION] Si ce n'est pas la bonne, on l'enlève juste
                             flowers.remove(picked_flower)
-                            # Pas de défaite, on continue de chercher
 
             elif event.type == pygame.KEYUP:
                 if event.key in keys_down:
@@ -197,10 +203,8 @@ def run(screen):
         # HUD
         if game_state == "PLAYING":
             col = (255, 255, 255)
-            # [MODIFICATION] Affichage du texte sans nombre d'essais
             lbl = font.render("MISSION : Nectare", True, col)
             screen.blit(lbl, (20, 20))
-            
             
             hint = font.render("La nature cache des pistes d'atterrissage", True, (200, 200, 200))
             screen.blit(hint, (20, 40))
@@ -215,7 +219,13 @@ def run(screen):
             
             c_res = (0, 255, 0)
             txt_res = font.render(message, True, c_res)
-            txt_quit = font.render("Appuyez sur ECHAP pour quitter", True, (255, 255, 255))
+            
+            # [MODIFICATION] Message de suite
+            if game_state == "WON":
+                txt_quit = font.render("Appuyez sur ENTREE pour le Niveau 3", True, (255, 255, 255))
+            else:
+                txt_quit = font.render("Appuyez sur ECHAP pour quitter", True, (255, 255, 255))
+                
             screen.blit(txt_res, (400 - txt_res.get_width()//2, 250))
             screen.blit(txt_quit, (400 - txt_quit.get_width()//2, 320))
 
