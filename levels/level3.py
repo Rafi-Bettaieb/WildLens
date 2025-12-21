@@ -188,7 +188,7 @@ def run(screen):
             screen.blit(font_hud.render("Il fait noir complet.Criez pour voir les murs", True, (200, 200, 200)), (20, 60))
         
         elif game_state == "WON":
-            overlay = pygame.Surface((800, 600), pygame.SRCALPHA)
+            overlay = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
             overlay.fill((0, 0, 0, 200))
             screen.blit(overlay, (0,0))
             

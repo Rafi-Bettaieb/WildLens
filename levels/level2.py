@@ -100,6 +100,8 @@ def run(screen):
     Sprite("images/tree.png", 2 * 32, 8 * 32)
     Sprite("images/tree.png", 15* 32, 15* 32)
     Sprite("images/tree.png", 17 * 32, 1 * 32)
+    Sprite("images/tree.png", 27 * 32, 5 * 32)
+    Sprite("images/tree.png", 10 * 32, 21 * 32)
     
     # --- GENERATION DES FLEURS ---
     flowers = []
@@ -114,8 +116,8 @@ def run(screen):
     total_flowers = 30
     created = 0
     while created < total_flowers:
-        rx = random.randint(50, 750)
-        ry = random.randint(50, 550)
+        rx = random.randint(50, 800)
+        ry = random.randint(50, 600)
         is_target = (created == total_flowers - 1)
         
         if is_pos_valid(rx, ry, 20, 20):
@@ -213,7 +215,7 @@ def run(screen):
             screen.blit(hint, (20, 60))
         else:
             # Fin de partie
-            overlay = pygame.Surface((800, 600), pygame.SRCALPHA)
+            overlay = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
             overlay.fill((0, 0, 0, 180))
             screen.blit(overlay, (0,0))
             
@@ -222,12 +224,17 @@ def run(screen):
             
             # [MODIFICATION] Message de suite
             if game_state == "WON":
-                txt_quit = font.render("Appuyez sur ENTREE pour le Niveau 3", True, (255, 255, 255))
+                col = (0, 255, 0)
+                txt_quit = font.render("Appuyez sur ENTREE pour le Niveau 3", True, col)
             else:
-                txt_quit = font.render("Appuyez sur ECHAP pour quitter", True, (255, 255, 255))
+                col = (255, 50, 50)
+                txt_quit = font.render("Appuyez sur ECHAP pour quitter", True, col)
                 
-            screen.blit(txt_res, (400 - txt_res.get_width()//2, 250))
-            screen.blit(txt_quit, (400 - txt_quit.get_width()//2, 320))
+            center_x = screen.get_width() // 2
+            center_y = screen.get_height() // 2
+            
+            screen.blit(txt_res, (center_x - txt_res.get_width()//2, center_y - 30))
+            screen.blit(txt_quit, (center_x - txt_quit.get_width()//2, center_y + 30))
 
         pygame.display.flip()
         clock.tick(60)

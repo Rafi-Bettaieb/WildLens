@@ -113,6 +113,8 @@ def run(screen):
     Sprite("images/tree.png", 15* 32, 15* 32)
     Sprite("images/tree.png", 17 * 32, 1 * 32)
     Sprite("images/tree.png", 1 * 32, 15 * 32)
+    Sprite("images/tree.png", 27 * 32, 5 * 32)
+    Sprite("images/tree.png", 10 * 32, 21 * 32)
     
     # Génération des moutons 
     sheeps = []
@@ -126,8 +128,8 @@ def run(screen):
     total_sheep = 13
     created = 0
     while created < total_sheep:
-        rx = random.randint(100, 700)
-        ry = random.randint(100, 500)
+        rx = random.randint(100, 800)
+        ry = random.randint(100, 600)
         is_robot = (created == total_sheep - 1)
         if is_pos_valid(rx, ry, 30, 30):
             sheeps.append(Sheep(rx, ry, is_robot=is_robot))
@@ -227,22 +229,24 @@ def run(screen):
         
         else:
             # Ecran Fin
-            overlay = pygame.Surface((800, 600), pygame.SRCALPHA)
+            overlay = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
             overlay.fill((0, 0, 0, 180))
             screen.blit(overlay, (0,0))
             
+            center_x = screen.get_width() // 2
+            center_y = screen.get_height() // 2
+
             if game_state == "WON":
                 col = (0, 255, 0)
                 txt = font.render(message, True, col)
                 txt2 = font.render("Appuyez sur ENTREE pour le Niveau 2", True, (255, 255, 255))
-                screen.blit(txt, (400 - txt.get_width()//2, 250))
-                screen.blit(txt2, (400 - txt2.get_width()//2, 320))
+                
             else:
                 col = (255, 50, 50)
                 txt = font.render(message, True, col)
                 txt2 = font.render("Appuyez sur ECHAP pour quitter", True, (255, 255, 255))
-                screen.blit(txt, (400 - txt.get_width()//2, 250))
-                screen.blit(txt2, (400 - txt2.get_width()//2, 320))
+            screen.blit(txt, (center_x - txt.get_width()//2, center_y - 30))
+            screen.blit(txt2, (center_x - txt2.get_width()//2, center_y + 30))
 
         pygame.display.flip()
         clock.tick(60)

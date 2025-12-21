@@ -6,8 +6,8 @@ import levels.level1 as level1
 pygame.init()
 
 pygame.display.set_caption("WildLens - Adventure")
-screen_width = 830
-screen_height = 640
+screen_width = 900
+screen_height = 675
 screen = pygame.display.set_mode((screen_width, screen_height))
 
 # Colors & Font for Menu
