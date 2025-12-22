@@ -115,15 +115,31 @@ def run(screen):
 
     total_flowers = 30
     created = 0
-    while created < total_flowers:
+
+    
+    failsafe = 0 
+    
+    while created < total_flowers and failsafe < 2000:
         rx = random.randint(50, 800)
         ry = random.randint(50, 600)
-        is_target = (created == total_flowers - 1)
         
-        if is_pos_valid(rx, ry, 20, 20):
-            flowers.append(Flower(rx, ry, is_target=is_target))
-            created += 1
-    
+        # --- NEW: Distance Check ---
+        too_close = False
+        for f in flowers:
+            # Check distance (Euclidean) between new position and existing flowers
+            dist = math.hypot(rx - f.rect.x, ry - f.rect.y)
+            if dist < 60:  # Minimum 60 pixels apart
+                too_close = True
+                break
+        
+        if not too_close:
+            is_target = (created == total_flowers - 1)
+            
+            if is_pos_valid(rx, ry, 20, 20):
+                flowers.append(Flower(rx, ry, is_target=is_target))
+                created += 1
+        
+        failsafe += 1
     camera = pygame.Rect(0, 0, screen.get_width(), screen.get_height())
     current_filter = None
     game_state = "PLAYING"
@@ -168,7 +184,8 @@ def run(screen):
                             game_state = "WON"
                             message = "BRAVO ! Nectar trouve."
                         else:
-                            flowers.remove(picked_flower)
+                            game_state = "LOST"
+                            message = "ECHEC ! Mauvaise fleur."
 
             elif event.type == pygame.KEYUP:
                 if event.key in keys_down:
