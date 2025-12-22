@@ -85,7 +85,7 @@ def run(screen, remaining_time):
     game_map = Map("maps/start.map", tile_kinds, 32)
     
     # Joueur
-    player = Player("images/man.png", 32*5, 32*5)
+    player = Player("images/Man.png", 32*5, 32*5)
     
     # --- CREATION DES OBSTACLES (ARBRES) ---
     Sprite("images/tree.png", 0 * 32, 0 * 32)

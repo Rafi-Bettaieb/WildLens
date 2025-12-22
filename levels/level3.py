@@ -97,7 +97,7 @@ def run(screen, remaining_time):
             y = row_idx * BLOCK_SIZE
             
             if char == "1": Sprite("images/wood.png", x, y)
-            elif char == "S": player = Player("images/man.png", x, y)
+            elif char == "S": player = Player("images/Man.png", x, y)
             elif char == "E": moth = Moth(x, y)
     
     if player is None: player = Player("images/man.png", 100, 100)
