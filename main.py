@@ -16,6 +16,9 @@ BUTTON_COLOR = (200, 200, 200)
 TEXT_COLOR = (0, 0, 0)
 font = pygame.font.Font(None, 50)
 
+# --- GLOBAL TIMER SETTING ---
+GLOBAL_TIME_LIMIT = 60 # 60 secondes total for all levels
+
 # --- MENU SETUP ---
 start_rect = pygame.Rect(screen_width // 2 - 150, screen_height // 2 - 60, 300, 50)
 quit_rect = pygame.Rect(screen_width // 2 - 150, screen_height // 2 + 20, 300, 50)
@@ -36,8 +39,9 @@ while running:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1: # Clic gauche
                 if start_rect.collidepoint(event.pos):
-                    # --- LANCER LE NIVEAU 1 (2D) ---
-                    level1.run(screen)
+                    # --- LANCER LE NIVEAU 1 AVEC LE CHRONO GLOBAL ---
+                    level1.run(screen, GLOBAL_TIME_LIMIT)
+                    
                     # Quand le niveau est fini (return), on remet la config écran menu
                     pygame.display.set_mode((screen_width, screen_height))
                     

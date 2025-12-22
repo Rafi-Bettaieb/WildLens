@@ -76,7 +76,7 @@ class Moth:
         pygame.draw.polygon(surface, (255, 255, 255), [p1, p2, p3])
 
 # --- 4. FONCTION PRINCIPALE ---
-def run(screen):
+def run(screen, remaining_time):
     clock = pygame.time.Clock()
     
     font = pygame.font.Font(None, 36)
@@ -109,11 +109,20 @@ def run(screen):
 
     running = True
     while running:
+        dt = clock.get_time() / 1000.0
+        
+        # --- TIMER LOGIC ---
+        if game_state == "PLAYING":
+            remaining_time -= dt
+            if remaining_time <= 0:
+                remaining_time = 0
+                game_state = "LOST"
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit(); sys.exit()
             
-            if game_state == "WON":
+            if game_state == "WON" or game_state == "LOST":
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if exit_button_rect.collidepoint(event.pos): return 
             
@@ -185,6 +194,12 @@ def run(screen):
             
             screen.blit(font.render(f"NIVEAU 3 : ECHOLOCALISATION", True, text_col), (20, 20))
             screen.blit(font.render("Il fait noir complet.Criez pour voir les murs", True, (200, 200, 200)), (20, 60))
+            
+            # --- DISPLAY TIMER ---
+            timer_col = (255, 255, 255) if remaining_time > 30 else (255, 0, 0)
+            timer_txt = font.render(f"TEMPS: {int(remaining_time)}", True, timer_col)
+            screen.blit(timer_txt, (screen.get_width() // 2 - timer_txt.get_width() // 2, 20))
+
             visions = [
                 "1 - dog",
                 "2 - bee",
@@ -207,6 +222,22 @@ def run(screen):
             txt_won = font_large.render("GAME OVER - YOU WON", True, (0, 255, 0))
             rect_won = txt_won.get_rect(center=(screen.get_width()//2, screen.get_height()//2 - 50))
             screen.blit(txt_won, rect_won)
+            
+            pygame.draw.rect(screen, (200, 200, 200), exit_button_rect) 
+            pygame.draw.rect(screen, (255, 255, 255), exit_button_rect, 3) 
+            
+            txt_btn = font_btn.render("QUITTER", True, (0, 0, 0))
+            rect_btn = txt_btn.get_rect(center=exit_button_rect.center)
+            screen.blit(txt_btn, rect_btn)
+            
+        elif game_state == "LOST":
+            overlay = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+            overlay.fill((0, 0, 0, 200))
+            screen.blit(overlay, (0,0))
+            
+            txt_lost = font_large.render("TEMPS ÉCOULÉ - PERDU", True, (255, 0, 0))
+            rect_lost = txt_lost.get_rect(center=(screen.get_width()//2, screen.get_height()//2 - 50))
+            screen.blit(txt_lost, rect_lost)
             
             pygame.draw.rect(screen, (200, 200, 200), exit_button_rect) 
             pygame.draw.rect(screen, (255, 255, 255), exit_button_rect, 3) 

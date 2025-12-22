@@ -80,7 +80,7 @@ class Sheep:
             surface.blit(self.image_normal, screen_pos)
 
 # --- FONCTION PRINCIPALE ---
-def run(screen):
+def run(screen, remaining_time):
     clock = pygame.time.Clock()
     font = pygame.font.Font(None, 36)
     
@@ -142,6 +142,16 @@ def run(screen):
 
     running = True
     while running:
+        dt = clock.get_time() / 1000.0
+        
+        # --- TIMER LOGIC ---
+        if game_state == "PLAYING":
+            remaining_time -= dt
+            if remaining_time <= 0:
+                remaining_time = 0
+                game_state = "LOST"
+                message = "TEMPS ECOULE ! GAME OVER"
+        
         # --- EVENEMENTS ---
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -154,7 +164,7 @@ def run(screen):
                 # [CORRECTION] Gestion de la transition vers Niveau 2
                 if game_state == "WON":
                     if event.key == pygame.K_RETURN: # Touche Entrée
-                        level2.run(screen)
+                        level2.run(screen, remaining_time)
                         return # Quitter le niveau 1
                 
                 # Filtres & Jeu
@@ -221,6 +231,11 @@ def run(screen):
             
             lbl = font.render("MISSION : SANG-FROID", True, col)
             screen.blit(lbl, (20, 20))
+            
+            # --- DISPLAY TIMER ---
+            timer_col = (255, 255, 255) if remaining_time > 30 else (255, 0, 0)
+            timer_txt = font.render(f"TEMPS: {int(remaining_time)}", True, timer_col)
+            screen.blit(timer_txt, (screen.get_width() // 2 - timer_txt.get_width() // 2, 20))
         
             hint = font.render("Au milieu de la vie, un coeur de pierre ne bat pas.", True, (200, 200, 200))
             screen.blit(hint, (20, 40))
