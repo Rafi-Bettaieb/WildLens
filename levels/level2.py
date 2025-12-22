@@ -148,12 +148,12 @@ def run(screen):
 
                 # Filtres
                 if event.key == pygame.K_0: current_filter = None
-                if event.key == pygame.K_1: current_filter = "snake"
+                if event.key == pygame.K_1: current_filter = "dog"
                 if event.key == pygame.K_2: current_filter = "bee"
-                if event.key == pygame.K_3: current_filter = "bat"
-                if event.key == pygame.K_4: current_filter = "eagle"
-                if event.key == pygame.K_5: current_filter = "dog"
-                if event.key == pygame.K_6: current_filter = "fish"
+                if event.key == pygame.K_3: current_filter = "eagle"
+                if event.key == pygame.K_4: current_filter = "bat"
+                if event.key == pygame.K_5: current_filter = "fish"
+                if event.key == pygame.K_6: current_filter = "snake"
                 
                 # Action
                 if event.key == pygame.K_SPACE and game_state == "PLAYING":
@@ -213,6 +213,19 @@ def run(screen):
     
             hint = font.render("Trouvez la fleur elue par le soleil.", True, (200, 200, 200))
             screen.blit(hint, (20, 60))
+            visions = [
+                "1 - dog",
+                "2 - bee",
+                "3 - eagle",
+                "4 - bat",
+                "5 - fish",
+                "6 - snake"
+            ]
+            
+            for i, line in enumerate(visions):
+                txt_surf = font.render(line, True, (255, 255, 255))
+                # Position: Right aligned with 20px padding
+                screen.blit(txt_surf, (screen.get_width() - txt_surf.get_width() - 20, 20 + i * 30))
         else:
             # Fin de partie
             overlay = pygame.Surface(screen.get_size(), pygame.SRCALPHA)

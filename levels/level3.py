@@ -79,7 +79,7 @@ class Moth:
 def run(screen):
     clock = pygame.time.Clock()
     
-    font_hud = pygame.font.Font(None, 36)
+    font = pygame.font.Font(None, 36)
     font_large = pygame.font.Font(None, 74) 
     font_btn = pygame.font.Font(None, 50)   
     
@@ -123,13 +123,14 @@ def run(screen):
                 
                 if game_state == "PLAYING":
                     # [MODIFICATION] Toutes les touches de vision fonctionnent
+                    # Filtres
                     if event.key == pygame.K_0: current_filter = None
-                    if event.key == pygame.K_1: current_filter = "snake"
+                    if event.key == pygame.K_1: current_filter = "dog"
                     if event.key == pygame.K_2: current_filter = "bee"
-                    if event.key == pygame.K_3: current_filter = "bat"
-                    if event.key == pygame.K_4: current_filter = "eagle"
-                    if event.key == pygame.K_5: current_filter = "dog"
-                    if event.key == pygame.K_6: current_filter = "fish"
+                    if event.key == pygame.K_3: current_filter = "eagle"
+                    if event.key == pygame.K_4: current_filter = "bat"
+                    if event.key == pygame.K_5: current_filter = "fish"
+                    if event.key == pygame.K_6: current_filter = "snake"
                     
             elif event.type == pygame.KEYUP:
                 if event.key in keys_down:
@@ -182,10 +183,21 @@ def run(screen):
             # Couleur du texte : Vert si Bat, Gris sinon
             text_col = (255, 255, 255)
             
-            screen.blit(font_hud.render(f"NIVEAU 3 : ECHOLOCALISATION", True, text_col), (20, 20))
+            screen.blit(font.render(f"NIVEAU 3 : ECHOLOCALISATION", True, text_col), (20, 20))
+            screen.blit(font.render("Il fait noir complet.Criez pour voir les murs", True, (200, 200, 200)), (20, 60))
+            visions = [
+                "1 - dog",
+                "2 - bee",
+                "3 - eagle",
+                "4 - bat",
+                "5 - fish",
+                "6 - snake"
+            ]
             
-            
-            screen.blit(font_hud.render("Il fait noir complet.Criez pour voir les murs", True, (200, 200, 200)), (20, 60))
+            for i, line in enumerate(visions):
+                txt_surf = font.render(line, True, (255, 255, 255))
+                # Position: Right aligned with 20px padding
+                screen.blit(txt_surf, (screen.get_width() - txt_surf.get_width() - 20, 20 + i * 30))
         
         elif game_state == "WON":
             overlay = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
