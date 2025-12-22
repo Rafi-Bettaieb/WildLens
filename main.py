@@ -1,9 +1,11 @@
 import pygame
 import sys
+import os
 # Import du dossier levels
 import levels.level1 as level1
 
 pygame.init()
+pygame.mixer.init() # Initialize the mixer module for sound
 
 pygame.display.set_caption("WildLens - Adventure")
 screen_width = 900
@@ -17,7 +19,22 @@ TEXT_COLOR = (0, 0, 0)
 font = pygame.font.Font(None, 50)
 
 # --- GLOBAL TIMER SETTING ---
-GLOBAL_TIME_LIMIT = 60 # 60 secondes total for all levels
+GLOBAL_TIME_LIMIT = 100 # 100 secondes total for all levels
+
+# --- MUSIC SETUP ---
+# Path to your music file 
+music_path = os.path.join("sounds", "music.mp3") 
+
+# Check if file exists to prevent crashing if missing
+if os.path.exists(music_path):
+    try:
+        pygame.mixer.music.load(music_path)
+        pygame.mixer.music.play(-1) # -1 means loop indefinitely
+        pygame.mixer.music.set_volume(0.3) # Set volume (0.0 to 1.0)
+    except pygame.error as e:
+        print(f"Error loading music: {e}")
+else:
+    print(f"Warning: Music file not found at {music_path}. Please add 'music.mp3' to a 'sounds' folder.")
 
 # --- MENU SETUP ---
 start_rect = pygame.Rect(screen_width // 2 - 150, screen_height // 2 - 60, 300, 50)
