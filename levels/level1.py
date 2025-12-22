@@ -42,7 +42,8 @@ class Sheep:
         pygame.draw.rect(self.image_normal, (255, 200, 200), (20, 5, 8, 20)) # Tête rose
         pygame.draw.circle(self.image_normal, (0,0,0), (24, 10), 2) # Oeil
 
-    def update(self, map_obj):
+    # [MODIFICATION] Added 'other_sheeps' parameter for collision check
+    def update(self, map_obj, other_sheeps):
         # Mouvement aléatoire
         self.move_timer += 1
         if self.move_timer > 50: 
@@ -61,9 +62,19 @@ class Sheep:
         
         # Collisions
         future_rect = pygame.Rect(new_x, new_y, self.width, self.height)
+        
+        # A. Map Obstacles
         if map_obj.is_blocked(new_x, new_y, self.width, self.height): return 
+        
+        # B. Sprites (Trees, etc.)
         for s in sprites:
             if future_rect.colliderect(s.rect): return 
+
+        # C. [NEW] Other Sheeps
+        for s in other_sheeps:
+            if s is not self: # Don't check collision with yourself
+                if future_rect.colliderect(s.rect):
+                    return # Stop moving if hitting another sheep
 
         self.rect.x = new_x
         self.rect.y = new_y
@@ -123,17 +134,25 @@ def run(screen, remaining_time):
         if game_map.is_blocked(x, y, w, h): return False
         for s in sprites:
             if rect.colliderect(s.rect): return False
+        
+        # [MODIFICATION] Check against already created sheeps during generation
+        for s in sheeps:
+            if rect.colliderect(s.rect): return False
+            
         return True
 
-    total_sheep = 13
+    total_sheep = 15
     created = 0
-    while created < total_sheep:
+    # Add a failsafe loop counter to prevent infinite loops if map is full
+    failsafe = 0
+    while created < total_sheep and failsafe < 2000:
         rx = random.randint(100, 800)
         ry = random.randint(100, 600)
         is_robot = (created == total_sheep - 1)
         if is_pos_valid(rx, ry, 30, 30):
             sheeps.append(Sheep(rx, ry, is_robot=is_robot))
             created += 1
+        failsafe += 1
     
     camera = pygame.Rect(0, 0, screen.get_width(), screen.get_height())
     current_filter = None
@@ -200,7 +219,8 @@ def run(screen, remaining_time):
         if game_state == "PLAYING":
             player.update(game_map)
             for s in sheeps:
-                s.update(game_map)
+                # [MODIFICATION] Pass the full list of sheeps to update
+                s.update(game_map, sheeps)
                 
             camera.center = player.rect.center
             camera.x = max(0, min(camera.x, game_map.pixel_width - camera.width))
