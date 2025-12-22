@@ -78,17 +78,11 @@ class Player(Sprite):
             if not self.check_collision(self.x, new_y, map_obj):
                 self.y = new_y
         
-        # --- NEW: Check Bounds and Respawn ---
-        # If the player goes off the left, top, right, or bottom edges
-        if (self.x < 0 or 
-            self.y < 0 or 
-            self.x > map_obj.pixel_width - self.width or 
-            self.y > map_obj.pixel_height - self.height):
-            
-            # Reset to start
-            self.x = self.start_x
-            self.y = self.start_y
-        # -------------------------------------
+        # --- CHANGED: Boundaries Constraint (Clamp) ---
+        # Prevent the player from crossing the map edges
+        self.x = max(0, min(self.x, map_obj.pixel_width - self.width))
+        self.y = max(0, min(self.y, map_obj.pixel_height - self.height))
+        # ----------------------------------------------
 
         # Sync rect with new position
         self.rect.topleft = (self.x, self.y)
