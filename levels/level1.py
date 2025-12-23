@@ -261,6 +261,8 @@ def run(screen, remaining_time):
             screen.blit(hint, (20, 40))
             hint = font.render("Cherchez celui qui ne degage aucune chaleur.", True, (200, 200, 200))
             screen.blit(hint, (20, 60))
+            hint = font.render("Appuyez sur 'Espace' pour le capturer", True, (200, 200, 200))
+            screen.blit(hint, (20, 80))
             visions = [
                 "1 - dog",
                 "2 - bee",

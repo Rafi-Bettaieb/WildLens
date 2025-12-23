@@ -242,9 +242,10 @@ def run(screen, remaining_time):
 
             hint = font.render("La nature cache des pistes d'atterrissage", True, (200, 200, 200))
             screen.blit(hint, (20, 40))
-    
             hint = font.render("Trouvez la fleur elue par le soleil.", True, (200, 200, 200))
             screen.blit(hint, (20, 60))
+            hint = font.render("Appuyez sur 'Espace' pour la capturer", True, (200, 200, 200))
+            screen.blit(hint, (20, 80))
             visions = [
                 "1 - dog",
                 "2 - bee",
