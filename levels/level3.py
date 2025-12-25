@@ -46,7 +46,7 @@ MAZE_LAYOUT = [
     "1011111110101011110101110101",
     "1000000010100010010100010101",
     "1111110010111010010111010101",
-    "100000S000000010000000010001", # Start (Bottom Left)
+    "1S00000000000010000000010001", # Start (Bottom Left)
     "1111111111111111111111111111"
 ]
 
@@ -193,12 +193,12 @@ def run(screen, remaining_time):
             text_col = (255, 255, 255)
             
             screen.blit(font.render(f"NIVEAU 3 : ECHOLOCALISATION", True, text_col), (20, 20))
-            screen.blit(font.render("Il fait noir complet.Criez pour voir les murs", True, (200, 200, 200)), (20, 60))
+            screen.blit(font.render("Indice : Il fait noir complet.Criez pour voir les murs", True, text_col), (20, 60))
             
             # --- DISPLAY TIMER ---
             timer_col = (255, 255, 255) if remaining_time > 30 else (255, 0, 0)
             timer_txt = font.render(f"TEMPS: {int(remaining_time)}", True, timer_col)
-            screen.blit(timer_txt, (screen.get_width() // 2 - timer_txt.get_width() // 2, 20))
+            screen.blit(timer_txt, (screen.get_width() // 2 - timer_txt.get_width() // 2 + 100, 20))
 
             visions = [
                 "1 - dog",

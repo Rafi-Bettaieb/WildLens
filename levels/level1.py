@@ -255,13 +255,13 @@ def run(screen, remaining_time):
             # --- DISPLAY TIMER ---
             timer_col = (255, 255, 255) if remaining_time > 30 else (255, 0, 0)
             timer_txt = font.render(f"TEMPS: {int(remaining_time)}", True, timer_col)
-            screen.blit(timer_txt, (screen.get_width() // 2 - timer_txt.get_width() // 2, 20))
+            screen.blit(timer_txt, (screen.get_width() // 2 - timer_txt.get_width() // 2 + 100, 20))
         
-            hint = font.render("Au milieu de la vie, un coeur de pierre ne bat pas.", True, (200, 200, 200))
+            hint = font.render("Indice : Au milieu de la vie, un coeur de pierre ne bat pas.", True, col)
             screen.blit(hint, (20, 40))
-            hint = font.render("Cherchez celui qui ne degage aucune chaleur.", True, (200, 200, 200))
+            hint = font.render("Cherchez celui qui ne degage aucune chaleur.", True, col)
             screen.blit(hint, (20, 60))
-            hint = font.render("Appuyez sur 'Espace' pour le capturer", True, (200, 200, 200))
+            hint = font.render("Appuyez sur 'Espace' pour le capturer", True, col)
             screen.blit(hint, (20, 80))
             visions = [
                 "1 - dog",

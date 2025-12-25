@@ -1,111 +1,189 @@
 import pygame
 import sys
 import os
-# Import du dossier levels
+# Import your level
 import levels.level1 as level1
 
+# --- CONFIGURATION ---
+SCREEN_WIDTH = 900
+SCREEN_HEIGHT = 675
+FPS = 60
+
+# --- COLOR PALETTE (Tech / Nature Theme) ---
+COLOR_BG = (20, 24, 28)           # Dark Slate (Background)
+COLOR_ACCENT = (0, 255, 128)      # Neon Green (Tech Nature)
+COLOR_TEXT_MAIN = (240, 240, 240) # Off-White (Readable text)
+COLOR_TEXT_DIM = (160, 170, 180)  # Grey (Subtitles)
+COLOR_BTN_NORMAL = (40, 50, 60)   # Dark Button
+COLOR_BTN_HOVER = (60, 80, 100)   # Lighter Button
+COLOR_SHADOW = (10, 10, 10)       # Drop shadow
+
+# --- SETUP ---
 pygame.init()
-pygame.mixer.init() # Initialize the mixer module for sound
+pygame.mixer.init()
 
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("WildLens - Adventure")
-screen_width = 900
-screen_height = 675
-screen = pygame.display.set_mode((screen_width, screen_height))
+clock = pygame.time.Clock()
 
-# Colors
-MENU_BG_COLOR = (50, 50, 50)
-BUTTON_COLOR = (200, 200, 200)
-TEXT_COLOR = (0, 0, 0)
-GREEN_TEXT = (30, 150, 50)
+# --- ASSET MANAGER ---
+def get_font(name, size, bold=False):
+    """Returns a system font to avoid 'None' default font look."""
+    # Tries to find specific fonts, falls back to default if not found
+    font_name = pygame.font.match_font(name)
+    if not font_name:
+        font_name = pygame.font.get_default_font()
+    return pygame.font.Font(font_name, size)
 
-# --- FONTS SETUP ---
-# title_font for the big header and buttons
-title_font = pygame.font.Font(None, 60) 
-# small_font for the story text (Minimized size)
-small_font = pygame.font.Font(None, 28) 
+# Fonts
+font_title = get_font('impact', 70)       # Bold Title
+font_subtitle = get_font('arial', 22)     # Clean story text
+font_button = get_font('arial', 30, bold=True)
 
-# --- GLOBAL TIMER SETTING ---
-GLOBAL_TIME_LIMIT = 100 # 100 seconds total for all levels
+# --- SOUND MANAGER ---
+def play_music():
+    music_path = os.path.join("sounds", "music.mp3")
+    if os.path.exists(music_path):
+        try:
+            pygame.mixer.music.load(music_path)
+            pygame.mixer.music.play(-1)
+            pygame.mixer.music.set_volume(0.3)
+        except pygame.error as e:
+            print(f"Audio Error: {e}")
+    else:
+        print("Music file not found, skipping.")
 
-# --- MUSIC SETUP ---
-music_path = os.path.join("sounds", "music.mp3") 
+play_music()
 
-if os.path.exists(music_path):
-    try:
-        pygame.mixer.music.load(music_path)
-        pygame.mixer.music.play(-1)
-        pygame.mixer.music.set_volume(0.3)
-    except pygame.error as e:
-        print(f"Error loading music: {e}")
-else:
-    print(f"Warning: Music file not found at {music_path}.")
+# --- UI CLASSES ---
+class Button:
+    def __init__(self, text, x, y, width, height, action=None):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.text = text
+        self.action = action
+        self.is_hovered = False
 
-# --- MENU SETUP ---
-# I moved these LOWER (y=400 and y=480) so they don't overlap with the text
-start_rect = pygame.Rect(screen_width // 2 - 150, 400, 300, 50)
-quit_rect = pygame.Rect(screen_width // 2 - 150, 480, 300, 50)
+    def draw(self, surface):
+        # Determine color based on hover state
+        color = COLOR_BTN_HOVER if self.is_hovered else COLOR_BTN_NORMAL
+        border_color = COLOR_ACCENT if self.is_hovered else (80, 90, 100)
 
-def draw_text_centered(text, rect, surf, font_to_use):
-    text_surf = font_to_use.render(text, True, TEXT_COLOR)
-    text_rect = text_surf.get_rect(center=rect.center)
-    surf.blit(text_surf, text_rect)
+        # Draw Shadow
+        shadow_rect = self.rect.copy()
+        shadow_rect.move_ip(4, 4)
+        pygame.draw.rect(surface, COLOR_SHADOW, shadow_rect, border_radius=12)
+
+        # Draw Main Button Body (Rounded)
+        pygame.draw.rect(surface, color, self.rect, border_radius=12)
+        
+        # Draw Border
+        pygame.draw.rect(surface, border_color, self.rect, 2, border_radius=12)
+
+        # Draw Text
+        text_surf = font_button.render(self.text, True, COLOR_TEXT_MAIN)
+        text_rect = text_surf.get_rect(center=self.rect.center)
+        surface.blit(text_surf, text_rect)
+
+    def update(self, mouse_pos):
+        self.is_hovered = self.rect.collidepoint(mouse_pos)
+
+    def check_click(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if self.is_hovered and self.action:
+                self.action()
+
+# --- HELPER FUNCTIONS ---
+def draw_background_grid(surface):
+    """Draws a subtle tech grid in the background."""
+    surface.fill(COLOR_BG)
+    grid_color = (30, 35, 40)
+    gap = 40
+    for x in range(0, SCREEN_WIDTH, gap):
+        pygame.draw.line(surface, grid_color, (x, 0), (x, SCREEN_HEIGHT))
+    for y in range(0, SCREEN_HEIGHT, gap):
+        pygame.draw.line(surface, grid_color, (0, y), (SCREEN_WIDTH, y))
+
+def draw_title_centered(text, y_pos):
+    # Shadow
+    shadow_surf = font_title.render(text, True, COLOR_SHADOW)
+    screen.blit(shadow_surf, (SCREEN_WIDTH//2 - shadow_surf.get_width()//2 + 4, y_pos + 4))
+    # Main Text
+    text_surf = font_title.render(text, True, COLOR_ACCENT)
+    screen.blit(text_surf, (SCREEN_WIDTH//2 - text_surf.get_width()//2, y_pos))
+
+def draw_story_block(lines, start_y):
+    current_y = start_y
+    spacing = 28
+    
+    for line in lines:
+        text_surf = font_subtitle.render(line, True, COLOR_TEXT_DIM)
+        # Add a subtle background box for readability if needed, but clean text is nice
+        text_rect = text_surf.get_rect(center=(SCREEN_WIDTH // 2, current_y))
+        screen.blit(text_surf, text_rect)
+        current_y += spacing
+
+# --- ACTIONS ---
+def start_game():
+    global_time_limit = 180
+    level1.run(screen, global_time_limit)
+    # Re-setup display after level returns (just in case level changed it)
+    pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    pygame.display.set_caption("WildLens - Menu")
+
+def quit_game():
+    pygame.quit()
+    sys.exit()
+
+# --- MAIN EXECUTION ---
+
+# Create Buttons
+btn_start = Button("START MISSION", SCREEN_WIDTH//2 - 125, 480, 250, 60, start_game)
+btn_quit = Button("QUIT", SCREEN_WIDTH//2 - 125, 560, 250, 60, quit_game)
+buttons = [btn_start, btn_quit]
+
+story_lines = [
+    "Agent, écoutez attentivement.",
+    "Une corporation corrompue a remplacé la nature par un mensonge parfait.",
+    "Utilisez votre WildLens pour retirer le camouflage",
+    "et révéler la vérité cachée en dessous.",
+    "", # Empty line for spacing
+    "Pour progresser, sélectionnez la vision adaptée à chaque situation",
+    "en utilisant les indices.",
+    "", # Empty line for spacing
+    "Bonne chance."
+]
 
 running = True
 
 while running:
-    # 1. GESTION DU MENU
+    # 1. Event Handling
+    mouse_pos = pygame.mouse.get_pos()
+    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-            
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1: # Clic gauche
-                if start_rect.collidepoint(event.pos):
-                    # --- LANCER LE NIVEAU 1 ---
-                    level1.run(screen, GLOBAL_TIME_LIMIT)
-                    # Reset screen when level finishes
-                    pygame.display.set_mode((screen_width, screen_height))
-                    
-                elif quit_rect.collidepoint(event.pos):
-                    running = False
-
-    # 2. DESSIN DU MENU
-    screen.fill(MENU_BG_COLOR)
-    
-    # --- A. Draw the Main Title (Big Font) ---
-    title_surface = title_font.render("Welcome To The Game : WILDLENS", True, GREEN_TEXT)
-    screen.blit(title_surface, (screen_width//2 - title_surface.get_width()//2, 50))
-
-    # --- B. Draw the Story Text (Small Font) ---
-    story_lines = [
-        "Agent, listen closely.",
-        "A corrupt corporation has replaced nature with a perfect lie.",
-        "Use your WildLens to strip away the camouflage",
-        "and expose the truth hidden underneath.",
-        "",
-        "Good luck."
-    ]
-
-    current_y = 130 
-    spacing = 35  # Tighter spacing for smaller font
-
-    for line in story_lines:
-        # Use small_font here
-        text_surface = small_font.render(line, True, GREEN_TEXT)
-        # Center the text
-        text_x = screen_width // 2 - text_surface.get_width() // 2
-        screen.blit(text_surface, (text_x, current_y))
         
-        current_y += spacing
+        for btn in buttons:
+            btn.check_click(event)
 
-    # --- C. Draw Buttons ---
-    pygame.draw.rect(screen, BUTTON_COLOR, start_rect)
-    pygame.draw.rect(screen, BUTTON_COLOR, quit_rect)
+    # 2. Update State
+    for btn in buttons:
+        btn.update(mouse_pos)
+
+    # 3. Drawing
+    draw_background_grid(screen)
     
-    # Use title_font for buttons so they are easy to read
-    draw_text_centered("START", start_rect, screen, title_font)
-    draw_text_centered("QUITTER", quit_rect, screen, title_font)
-        
+    # Draw Logo/Title
+    draw_title_centered("WILDLENS", 50)
+    
+    # Draw Story
+    draw_story_block(story_lines, 160)
+    
+    # Draw Buttons
+    for btn in buttons:
+        btn.draw(screen)
+
     pygame.display.flip()
+    clock.tick(FPS)
 
 pygame.quit()

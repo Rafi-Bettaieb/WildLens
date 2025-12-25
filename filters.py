@@ -1,15 +1,35 @@
 import pygame
 import numpy as np
 
+# --- 1. PRE-CALCULATE LOOKUP TABLE (Runs once at import) ---
+# We compute the thermal colors for all 256 possible intensity levels upfront.
+# This prevents doing the same heavy math millions of times per second.
+_snake_lut = np.zeros((256, 3), dtype=np.uint8)
+indices = np.arange(256)
+
+# Apply the same formulas as before, but on the small lookup table
+_snake_lut[:, 0] = np.clip(indices * 1.5, 0, 255)       # Red Channel
+_snake_lut[:, 1] = np.clip((indices - 100) * 3, 0, 255) # Green Channel
+_snake_lut[:, 2] = np.clip(255 - indices, 0, 255)       # Blue Channel
+
+
 def apply_snake_vision(surf):
-    """ SERPENT : Simulation Thermique (Heatmap) """
-    pix = pygame.surfarray.pixels3d(surf).astype(float)
-    intensity = np.mean(pix, axis=2)
-    new_pix = np.zeros_like(pix)
-    new_pix[:,:,0] = np.clip(intensity * 1.5, 0, 255)
-    new_pix[:,:,1] = np.clip((intensity - 100) * 3, 0, 255)
-    new_pix[:,:,2] = np.clip(255 - intensity, 0, 255)
-    return pygame.surfarray.make_surface(new_pix.astype(np.uint8))
+    """ SERPENT : High Performance + Full Resolution """
+    # 1. Get pixels as integers directly (W, H, 3)
+    pix = pygame.surfarray.pixels3d(surf)
+    
+    # 2. Calculate Intensity using efficient Integer Math
+    # We sum R+G+B and divide by 3. 
+    # (Using uint16 for the sum prevents overflow before division)
+    intensity = (pix[:,:,0].astype(np.uint16) + 
+                 pix[:,:,1].astype(np.uint16) + 
+                 pix[:,:,2].astype(np.uint16)) // 3
+                 
+    # 3. Apply the Lookup Table
+    # NumPy replaces every intensity value with the pre-calculated color instantly.
+    new_pix = _snake_lut[intensity]
+    return pygame.surfarray.make_surface(new_pix)
+
 
 def apply_bee_vision(surf):
     """ ABEILLE : Vision UV simulée + Facettes """

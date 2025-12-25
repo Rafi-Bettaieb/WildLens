@@ -238,13 +238,13 @@ def run(screen, remaining_time):
             # --- DISPLAY TIMER ---
             timer_col = (255, 255, 255) if remaining_time > 30 else (255, 0, 0)
             timer_txt = font.render(f"TEMPS: {int(remaining_time)}", True, timer_col)
-            screen.blit(timer_txt, (screen.get_width() // 2 - timer_txt.get_width() // 2, 20))
+            screen.blit(timer_txt, (screen.get_width() // 2 - timer_txt.get_width() // 2 + 100, 20))
 
-            hint = font.render("La nature cache des pistes d'atterrissage", True, (200, 200, 200))
+            hint = font.render("Indice : La nature cache des pistes d'atterrissage", True, col)
             screen.blit(hint, (20, 40))
-            hint = font.render("Trouvez la fleur elue par le soleil.", True, (200, 200, 200))
+            hint = font.render("Trouvez la fleur elue par le soleil.", True, col)
             screen.blit(hint, (20, 60))
-            hint = font.render("Appuyez sur 'Espace' pour la capturer", True, (200, 200, 200))
+            hint = font.render("Appuyez sur 'Espace' pour la capturer", True, col)
             screen.blit(hint, (20, 80))
             visions = [
                 "1 - dog",
