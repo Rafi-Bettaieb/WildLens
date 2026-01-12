@@ -105,6 +105,8 @@ WildLens/
 
 │── main.py        # Entry point, menu, and main game loop
 
+│── input.py       # Gestion entrées (clavier)
+
 │── filters.py     # Vision effects using NumPy & Pygame
 
 │── map.py         # Tile-based map rendering and collision
@@ -118,6 +120,8 @@ WildLens/
 │── images/        # Graphics assets
 
 │── sounds/        # Audio assets
+
+│── maps/          # Map of the game
 
 ---
 
