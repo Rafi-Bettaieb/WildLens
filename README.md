@@ -102,13 +102,21 @@ Think fast, switch visions efficiently, and avoid mistakes — time is always ag
 ## Project Structure
 
 WildLens/
+
 │── main.py        # Entry point, menu, and main game loop
+
 │── filters.py     # Vision effects using NumPy & Pygame
+
 │── map.py         # Tile-based map rendering and collision
+
 │── player.py      # Player logic and animations
+
 │── sprite.py      # Generic sprite handling class
+
 │── levels/        # Level logic (Level 1, 2, 3)
+
 │── images/        # Graphics assets
+
 │── sounds/        # Audio assets
 
 
@@ -125,3 +133,13 @@ WildLens/
 Install dependencies with:
 ```bash
 pip install pygame numpy
+```
+
+## 🚀 How to Run
+1. Clone or download the repository
+
+2. Navigate to the project folder
+
+3. Run the main script:
+   ```bash
+   python main.py
