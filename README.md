@@ -119,6 +119,7 @@ WildLens/
 
 │── sounds/        # Audio assets
 
+---
 
 ## ⚙️ Installation
 
@@ -134,7 +135,7 @@ Install dependencies with:
 ```bash
 pip install pygame numpy
 ```
-
+---
 ## 🚀 How to Run
 1. Clone or download the repository
 
